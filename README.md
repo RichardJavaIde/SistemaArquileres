@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Resumen del proyecto Rentia — Fases 1 a 3
+Tecnologías usadas hasta ahora y su rol
+Tecnología	¿Para qué la usamos?
+Next.js	Framework principal: frontend (React) y backend (API routes) en un solo proyecto
+TypeScript	Añade tipos a JavaScript para detectar errores antes de ejecutar el código
+pnpm	Gestor de paquetes (instala dependencias). Más rápido y eficiente en disco que npm
+Neon	Base de datos Postgres en la nube, con plan gratuito
+Drizzle ORM	Traduce código TypeScript a SQL para hablar con Postgres, con seguridad de tipos
+Drizzle Kit	Herramienta de línea de comandos de Drizzle: aplica el schema a la base de datos, genera migraciones, abre Drizzle Studio
+dotenv	Carga las variables del archivo .env en process.env para que el código las pueda leer
+Better Auth	Librería de autenticación: login, registro, sesiones, roles
+Corepack	Herramienta incluida en Node.js para instalar y gestionar pnpm/yarn sin pasos extra
+Comandos de terminal — Fase 1: Setup del proyecto
+Comando	Qué hace
+node -v	Muestra la versión de Node.js instalada
+corepack enable	Activa Corepack para poder usar pnpm
+corepack prepare pnpm@latest --activate	Descarga y activa la última versión de pnpm
+pnpm -v	Confirma que pnpm está instalado y funcional
+pnpm create next-app@latest rentia	Crea un proyecto nuevo de Next.js llamado "rentia"
+cd rentia	Entra a la carpeta del proyecto
+pnpm dev	Levanta el servidor de desarrollo en localhost:3000
+git init	Inicializa un repositorio de git en la carpeta
+git add . / git commit -m "mensaje"	Guarda una "foto" versionada de tus archivos
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser	(Solo Windows/PowerShell) Permite ejecutar scripts de herramientas como pnpm
+Comandos — Fase 2: Base de datos con Neon + Drizzle
+Comando	Qué hace
+pnpm add drizzle-orm @neondatabase/serverless	Instala Drizzle y el driver de conexión a Neon (dependencias de producción)
+pnpm add -D drizzle-kit dotenv	Instala herramientas de desarrollo: Drizzle Kit y dotenv
+pnpm approve-builds	Aprueba scripts de instalación de paquetes que pnpm bloquea por seguridad
+pnpm drizzle-kit check --config=drizzle.config.ts	Verifica que la configuración y el schema no tengan errores de sintaxis
+pnpm drizzle-kit push --config=drizzle.config.ts	Aplica los cambios del schema.ts directamente a la base de datos (sin generar archivos de migración)
+pnpm drizzle-kit studio --config=drizzle.config.ts	Abre una interfaz web para ver y editar las tablas visualmente
+pnpm why drizzle-orm	Muestra todas las versiones instaladas de un paquete y quién las pide (útil para depurar conflictos)
+pnpm store prune	Limpia el caché global de pnpm de versiones no usadas
+Comandos — Fase 3: Autenticación con Better Auth
+Comando	Qué hace
+pnpm add better-auth	Instala la librería de autenticación
+pnpm dlx @better-auth/cli generate	Genera automáticamente las tablas necesarias (user, session, account, verification) a partir de tu configuración en auth.ts
+node -e "require('dotenv').config(); console.log(process.env.DATABASE_URL)"	Prueba aislada para confirmar que dotenv está leyendo el .env correctamente
+Comandos de mantenimiento / depuración (usados para resolver errores)
+Comando	Cuándo se usa
+Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml	Borra dependencias instaladas y el lockfile, para reinstalar limpio
+pnpm install	Reinstala todas las dependencias listadas en package.json
+Get-Content archivo.ts	(PowerShell) Imprime el contenido real de un archivo, útil para confirmar qué hay guardado en disco
+Conceptos clave aprendidos
+.env: archivo con secretos/configuración que nunca se sube a git. Se lee con dotenv.
+ORM: escribes TypeScript, Drizzle lo traduce a SQL.
+Migración vs push: push aplica cambios directo (bueno para prototipar); generate + migrate deja un historial versionado (mejor para producción).
+Foreign key: columna que apunta al id de otra tabla; Postgres rechaza valores que no existan en la tabla referenciada.
+onDelete: "cascade" vs "restrict": decide qué pasa con los datos relacionados cuando borras un registro padre.
+UUID vs texto para IDs: nuestras tablas usan uuid; las tablas de Better Auth usan text — deben coincidir en las foreign keys.
+Server Components vs Client Components: por defecto todo componente de Next.js corre en el servidor; "use client" lo pasa al navegador para poder usar useState, onClick, etc.
+input: false en Better Auth: evita que un campo (como role) se pueda enviar desde un formulario público — se controla solo desde el backend.
+pnpm workspaces: un archivo pnpm-workspace.yaml convierte una carpeta en un "monorepo"; si aparece sin querer, puede romper cómo se enlazan los comandos.
