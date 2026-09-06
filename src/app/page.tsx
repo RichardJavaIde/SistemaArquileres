@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { signUpSchema, signInSchema  } from "@/validators/auth";
+
 
 export default function Home() {
   const { data: session, isPending } = authClient.useSession();
@@ -12,14 +14,29 @@ export default function Home() {
   const [result, setResult] = useState("");
 
   async function handleSignUp() {
-    const { data, error } = await authClient.signUp.email({ email, password, name });
-    setResult(error ? `Error: ${error.message}` : `¡Cuenta creada! ID: ${data.user.id}`);
+   const validation = signUpSchema.safeParse({ name, email, password });
+
+  if (!validation.success) {
+    // .issues es un array de todos los errores encontrados
+    setResult(`Error: ${validation.error.issues[0].message}`);
+    return; // cortamos aquí, ni siquiera llamamos a Better Auth
+  }
+
+  const { data, error } = await authClient.signUp.email(validation.data);
+  setResult(error ? `Error: ${error.message}` : `¡Cuenta creada! ID: ${data.user.id}`);
   }
 
   async function handleSignIn() {
-    const { data, error } = await authClient.signIn.email({ email, password });
-    setResult(error ? `Error: ${error.message}` : `¡Sesión iniciada! Bienvenido, ${data.user.name}`);
+    const validation = signInSchema.safeParse({ email, password });
+
+  if (!validation.success) {
+    setResult(`Error: ${validation.error.issues[0].message}`);
+    return;
   }
+
+  const { data, error } = await authClient.signIn.email(validation.data);
+  setResult(error ? `Error: ${error.message}` : `¡Sesión iniciada! Bienvenido, ${data.user.name}`);
+}
 
   async function handleSignOut() {
     await authClient.signOut();

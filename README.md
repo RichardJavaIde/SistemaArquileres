@@ -91,3 +91,21 @@
 ---
 
 *Generado durante el aprendizaje guiado del proyecto Rentia — Fases 1, 2 y 3 completadas.*
+Fase 4: validación con Zod
+pnpm add zod — única instalación necesaria.
+z.object({...}): define la forma y reglas de un dato (tipo, longitud mínima, formato de email, etc.), con mensajes de error personalizados.
+z.infer<typeof miSchema>: genera el type de TypeScript automáticamente a partir del schema de Zod — evita mantener dos definiciones (Zod + TS) sincronizadas a mano.
+.safeParse(data): valida sin lanzar excepción; devuelve { success: true, data } o { success: false, error }. Es la forma recomendada para validar datos de formularios o peticiones HTTP.
+Regla de oro: validar en el cliente (feedback instantáneo) Y en el servidor (seguridad real) usando el MISMO schema de Zod en ambos lugares — nunca confiar solo en la validación del frontend, porque cualquiera puede saltársela con una petición directa (Postman, curl, etc.).
+Conceptos clave aprendidos
+.env: archivo con secretos/configuración que nunca se sube a git. Se lee con dotenv.
+ORM: escribes TypeScript, Drizzle lo traduce a SQL.
+Migración vs push: push aplica cambios directo (bueno para prototipar); generate + migrate deja un historial versionado (mejor para producción).
+Foreign key: columna que apunta al id de otra tabla; Postgres rechaza valores que no existan en la tabla referenciada.
+onDelete: "cascade" vs "restrict": decide qué pasa con los datos relacionados cuando borras un registro padre.
+UUID vs texto para IDs: nuestras tablas usan uuid; las tablas de Better Auth usan text — deben coincidir en las foreign keys.
+Server Components vs Client Components: por defecto todo componente de Next.js corre en el servidor; "use client" lo pasa al navegador para poder usar useState, onClick, etc.
+input: false en Better Auth: evita que un campo (como role) se pueda enviar desde un formulario público — se controla solo desde el backend.
+pnpm workspaces: un archivo pnpm-workspace.yaml convierte una carpeta en un "monorepo"; si aparece sin querer, puede romper cómo se enlazan los comandos.
+
+Generado durante el aprendizaje guiado del proyecto Rentia — Fases 1, 2 y 3 completadas.

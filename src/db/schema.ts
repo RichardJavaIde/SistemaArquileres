@@ -2,7 +2,7 @@
 // Aquí irán todas nuestras tablas. Empezamos vacío a propósito.
 // src/db/schema.ts
 import { relations } from "drizzle-orm";
-import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index, integer } from "drizzle-orm/pg-core";
 
 // Un "enum" limita los valores posibles de una columna a una lista fija.
 // Esto evita que alguien guarde role: "vecino" por error.
@@ -50,6 +50,7 @@ export const contracts = pgTable("contracts", {
     .references(() => user.id, { onDelete: "restrict" }),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
+  durationMonths: integer("duration_months").notNull(), 
   monthlyRent: numeric("monthly_rent", { precision: 10, scale: 2 }).notNull(),
   status: contractStatusEnum("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -172,6 +173,25 @@ export const sessionRelations = relations(session, ({ one }) => ({
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
+    references: [user.id],
+  }),
+}));
+
+export const propertiesRelations = relations(properties, ({ one, many }) => ({
+  owner: one(user, {
+    fields: [properties.ownerId],
+    references: [user.id],
+  }),
+  contracts: many(contracts),
+}));
+
+export const contractsRelations = relations(contracts, ({ one }) => ({
+  property: one(properties, {
+    fields: [contracts.propertyId],
+    references: [properties.id],
+  }),
+  tenant: one(user, {
+    fields: [contracts.tenantId],
     references: [user.id],
   }),
 }));
