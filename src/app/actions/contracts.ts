@@ -2,7 +2,7 @@
 "use server";
 
 import { db } from "@/db";
-import { contracts, properties } from "@/db/schema";
+import { contracts, properties,payments  } from "@/db/schema";
 import { createContractSchema } from "@/validators/contract";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -62,4 +62,37 @@ export async function createContract(input: unknown) {
     }
     throw err; // cualquier otro error, lo dejamos propagar (no lo escondemos)
   }
+}
+
+export async function cancelContract(contractId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !["owner", "admin"].includes((session.user as any).role)) {
+    return { error: "No tienes permiso para cancelar contratos" };
+  }
+
+  // Verificar que el contrato pertenezca a un inmueble de este owner
+  const [contract] = await db
+    .select({ id: contracts.id, ownerId: properties.ownerId })
+    .from(contracts)
+    .innerJoin(properties, eq(contracts.propertyId, properties.id))
+    .where(eq(contracts.id, contractId));
+
+  if (!contract || contract.ownerId !== session.user.id) {
+    return { error: "Ese contrato no existe o no te pertenece" };
+  }
+
+  // Verificar que no tenga pagos ya realizados
+  const [paidPayment] = await db
+    .select()
+    .from(payments)
+    .where(and(eq(payments.contractId, contractId), eq(payments.status, "paid")));
+
+  if (paidPayment) {
+    return { error: "No puedes cancelar un contrato que ya tiene pagos realizados" };
+  }
+
+  await db.update(contracts).set({ status: "cancelled" }).where(eq(contracts.id, contractId));
+
+  revalidatePath("/dashboard/owner/contracts");
+  return { success: true };
 }

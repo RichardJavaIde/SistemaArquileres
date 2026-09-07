@@ -2,11 +2,12 @@
 "use server";
 
 import { db } from "@/db";
-import { properties } from "@/db/schema";
+import { properties, contracts } from "@/db/schema";
 import { createPropertySchema } from "@/validators/property";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { eq, and } from "drizzle-orm";
 
 export async function createProperty(input: unknown) {
   // 1. Verificar que hay una sesión activa
@@ -40,5 +41,32 @@ export async function createProperty(input: unknown) {
   // 5. Le dice a Next.js "la data de esta página cambió, refréscala"
   revalidatePath("/properties");
 
+  
   return { success: true, property: newProperty };
+}
+export async function deactivateProperty(propertyId: string) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "Debes iniciar sesión" };
+
+  const [property] = await db
+    .select()
+    .from(properties)
+    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+
+  if (!property) return { error: "Ese inmueble no existe o no te pertenece" };
+
+  // Verificar que no tenga un contrato activo
+  const [activeContract] = await db
+    .select()
+    .from(contracts)
+    .where(and(eq(contracts.propertyId, propertyId), eq(contracts.status, "active")));
+
+  if (activeContract) {
+    return { error: "No puedes eliminar un inmueble con un contrato activo" };
+  }
+
+  await db.update(properties).set({ isActive: false }).where(eq(properties.id, propertyId));
+
+  revalidatePath("/dashboard/owner/properties");
+  return { success: true };
 }

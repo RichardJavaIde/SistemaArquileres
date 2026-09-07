@@ -2,7 +2,7 @@
 // Aquí irán todas nuestras tablas. Empezamos vacío a propósito.
 // src/db/schema.ts
 import { relations } from "drizzle-orm";
-import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index, integer,uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index, integer,uniqueIndex, } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // Un "enum" limita los valores posibles de una columna a una lista fija.
@@ -24,6 +24,7 @@ id: uuid("id").primaryKey().defaultRandom(),
   type: propertyTypeEnum("type").notNull(),
   description: text("description"),
   monthlyPrice: numeric("monthly_price", { precision: 10, scale: 2 }).notNull(),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
