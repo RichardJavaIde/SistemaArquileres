@@ -2,19 +2,12 @@
 // Aquí irán todas nuestras tablas. Empezamos vacío a propósito.
 // src/db/schema.ts
 import { relations } from "drizzle-orm";
-import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index, integer } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, timestamp, pgEnum, text, numeric,date, boolean, index, integer,uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 // Un "enum" limita los valores posibles de una columna a una lista fija.
 // Esto evita que alguien guarde role: "vecino" por error.
 export const roleEnum = pgEnum("role", ["admin", "owner", "tenant"]);
-
-/*export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  role: roleEnum("role").notNull().default("tenant"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});*/
 
 // Definimos otro enum para los tipos de propiedad
 
@@ -54,7 +47,12 @@ export const contracts = pgTable("contracts", {
   monthlyRent: numeric("monthly_rent", { precision: 10, scale: 2 }).notNull(),
   status: contractStatusEnum("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+},
+ (table) => [
+    uniqueIndex("one_active_contract_per_property")
+      .on(table.propertyId)
+      .where(sql`${table.status} = 'active'`),
+  ],);
 
 // Definimos otro enum para los estados del pago
 

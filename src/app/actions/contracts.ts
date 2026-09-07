@@ -14,21 +14,19 @@ function addMonths(dateStr: string, months: number): string {
   date.setMonth(date.getMonth() + months);
   return date.toISOString().split("T")[0]; // formato "YYYY-MM-DD" que espera la columna date
 }
+
 export async function createContract(input: unknown) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session || !["owner", "admin"].includes((session.user as any).role)) {
     return { error: "No tienes permiso para crear contratos" };
   }
-  
-  
 
   const validation = createContractSchema.safeParse(input);
   if (!validation.success) {
     return { error: validation.error.issues[0].message };
   }
 
-    const { propertyId, tenantId, startDate, months, monthlyRent } = validation.data;
-
+  const { propertyId, tenantId, startDate, months, monthlyRent } = validation.data;
 
   // Verificar que el inmueble sea del owner que hace la petición (seguridad extra)
   const [property] = await db
@@ -42,29 +40,26 @@ export async function createContract(input: unknown) {
 
   const endDate = addMonths(startDate, months);
 
-  const [newContract] = await db
-    .insert(contracts)
-    .values({
-      propertyId,
-      tenantId,
-      startDate,
-      endDate,
-      durationMonths: months,
-      monthlyRent: monthlyRent.toString(),
-    })
-    .returning();
+  try {
+    const [newContract] = await db
+      .insert(contracts)
+      .values({
+        propertyId,
+        tenantId,
+        startDate,
+        endDate,
+        durationMonths: months,
+        monthlyRent: monthlyRent.toString(),
+      })
+      .returning();
 
-  revalidatePath("/dashboard/owner/contracts");
-    // Verificar que el inmueble no tenga ya un contrato activo
-  const [existingActive] = await db
-    .select()
-    .from(contracts)
-    .where(and(eq(contracts.propertyId, propertyId), eq(contracts.status, "active")));
-
-  if (existingActive) {
-    return { error: "Este inmueble ya tiene un contrato activo" };
+    revalidatePath("/dashboard/owner/contracts");
+    return { success: true, contract: newContract };
+  } catch (err: any) {
+    if (err.code === "23505") {
+      // Código estándar de Postgres para "violación de restricción única"
+      return { error: "Este inmueble ya tiene un contrato activo" };
+    }
+    throw err; // cualquier otro error, lo dejamos propagar (no lo escondemos)
   }
-
-  revalidatePath("/dashboard/owner/contracts");
-  return { success: true, contract: newContract };
 }
