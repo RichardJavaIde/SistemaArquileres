@@ -96,3 +96,72 @@ export async function cancelContract(contractId: string) {
   revalidatePath("/dashboard/owner/contracts");
   return { success: true };
 }
+
+export async function updateContract(contractId: string, input: unknown) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || !["owner", "admin"].includes((session.user as any).role)) {
+    return { error: "No tienes permiso para editar contratos" };
+  }
+
+  // Verificar que el contrato exista y pertenezca (vía el inmueble) a este owner
+  const [existing] = await db
+    .select({ id: contracts.id, ownerId: properties.ownerId })
+    .from(contracts)
+    .innerJoin(properties, eq(contracts.propertyId, properties.id))
+    .where(eq(contracts.id, contractId));
+
+  if (!existing || existing.ownerId !== session.user.id) {
+    return { error: "Ese contrato no existe o no te pertenece" };
+  }
+
+  // Bloquear edición si ya tiene algún pago registrado
+  const [anyPayment] = await db
+    .select()
+    .from(payments)
+    .where(eq(payments.contractId, contractId));
+
+  if (anyPayment) {
+    return { error: "No puedes editar un contrato que ya tiene pagos registrados" };
+  }
+
+  const validation = createContractSchema.safeParse(input); // reutilizamos el mismo schema de crear
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message };
+  }
+
+  const { propertyId, tenantId, startDate, months, monthlyRent } = validation.data;
+
+  // Si cambió el inmueble, confirmar que el NUEVO también le pertenezca a este owner
+  const [newProperty] = await db
+    .select()
+    .from(properties)
+    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+
+  if (!newProperty) {
+    return { error: "Ese inmueble no existe o no te pertenece" };
+  }
+
+  const endDate = addMonths(startDate, months);
+
+  try {
+    await db
+      .update(contracts)
+      .set({
+        propertyId,
+        tenantId,
+        startDate,
+        endDate,
+        durationMonths: months,
+        monthlyRent: monthlyRent.toString(),
+      })
+      .where(eq(contracts.id, contractId));
+
+    revalidatePath("/dashboard/owner/contracts");
+    return { success: true };
+  } catch (err: any) {
+    if (err.code === "23505") {
+      return { error: "El inmueble seleccionado ya tiene otro contrato activo" };
+    }
+    throw err;
+  }
+}

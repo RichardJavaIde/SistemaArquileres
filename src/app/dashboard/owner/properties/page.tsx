@@ -27,8 +27,9 @@ export default async function PropertiesPage() {
       <ul>
         {myProperties.map((p) => (
           <li key={p.id}>
-            {p.address} — {p.type} — ${p.monthlyPrice}/mes
-  <DeleteButton propertyId={p.id} />
+             {p.address} — {p.type} — ${p.monthlyPrice}/mes
+            {" "}<Link href={`/dashboard/owner/properties/${p.id}/edit`}>Editar</Link>
+            <DeleteButton propertyId={p.id} />
           </li>
         ))}
       </ul>

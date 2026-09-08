@@ -70,3 +70,31 @@ export async function deactivateProperty(propertyId: string) {
   revalidatePath("/dashboard/owner/properties");
   return { success: true };
 }
+
+export async function updateProperty(propertyId: string, input: unknown) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { error: "Debes iniciar sesión" };
+
+  const [property] = await db
+    .select()
+    .from(properties)
+    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+
+  if (!property) return { error: "Ese inmueble no existe o no te pertenece" };
+
+  const validation = createPropertySchema.safeParse(input); // reutilizamos el mismo schema de Zod de crear
+  if (!validation.success) {
+    return { error: validation.error.issues[0].message };
+  }
+
+  await db
+    .update(properties)
+    .set({
+      ...validation.data,
+      monthlyPrice: validation.data.monthlyPrice.toString(),
+    })
+    .where(eq(properties.id, propertyId));
+
+  revalidatePath("/dashboard/owner/properties");
+  return { success: true };
+}

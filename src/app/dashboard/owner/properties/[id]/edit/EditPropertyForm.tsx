@@ -1,0 +1,46 @@
+// src/app/dashboard/owner/properties/[id]/edit/EditPropertyForm.tsx
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { updateProperty } from "@/app/actions/properties";
+
+type Props = {
+  property: { id: string; address: string; type: string; monthlyPrice: string };
+};
+
+export function EditPropertyForm({ property }: Props) {
+  const router = useRouter();
+  const [address, setAddress] = useState(property.address);
+  const [type, setType] = useState(property.type);
+  const [monthlyPrice, setMonthlyPrice] = useState(property.monthlyPrice);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit() {
+    setLoading(true);
+    setError("");
+    const result = await updateProperty(property.id, { address, type, monthlyPrice });
+    if (result.error) {
+      setError(result.error);
+      setLoading(false);
+      return;
+    }
+    router.push("/dashboard/owner/properties");
+  }
+
+  return (
+    <div style={{ maxWidth: 400 }}>
+      <input value={address} onChange={(e) => setAddress(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
+      <select value={type} onChange={(e) => setType(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }}>
+        <option value="house">Casa</option>
+        <option value="apartment">Apartamento</option>
+        <option value="land">Terreno</option>
+        <option value="commercial">Local comercial</option>
+      </select>
+      <input value={monthlyPrice} onChange={(e) => setMonthlyPrice(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
+      <button onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar cambios"}</button>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+    </div>
+  );
+}
