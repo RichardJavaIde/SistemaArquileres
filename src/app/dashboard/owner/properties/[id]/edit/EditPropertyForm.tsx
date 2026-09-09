@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProperty } from "@/app/actions/properties";
+import { inputClass, buttonPrimaryClass, errorTextClass } from "@/lib/styles";
 
 type Props = {
   property: { id: string; address: string; type: string; monthlyPrice: string };
@@ -30,17 +31,19 @@ export function EditPropertyForm({ property }: Props) {
   }
 
   return (
-    <div style={{ maxWidth: 400 }}>
-      <input value={address} onChange={(e) => setAddress(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
-      <select value={type} onChange={(e) => setType(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }}>
+    <div>
+      <input value={address} onChange={(e) => setAddress(e.target.value)} className={inputClass} />
+      <select value={type} onChange={(e) => setType(e.target.value)} className={inputClass}>
         <option value="house">Casa</option>
         <option value="apartment">Apartamento</option>
         <option value="land">Terreno</option>
         <option value="commercial">Local comercial</option>
       </select>
-      <input value={monthlyPrice} onChange={(e) => setMonthlyPrice(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
-      <button onClick={handleSubmit} disabled={loading}>{loading ? "Guardando..." : "Guardar cambios"}</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <input value={monthlyPrice} onChange={(e) => setMonthlyPrice(e.target.value)} className={inputClass} />
+      <button onClick={handleSubmit} disabled={loading} className={buttonPrimaryClass}>
+        {loading ? "Guardando..." : "Guardar cambios"}
+      </button>
+      {error && <p className={errorTextClass}>{error}</p>}
     </div>
   );
 }

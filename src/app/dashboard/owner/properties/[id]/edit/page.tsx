@@ -6,9 +6,10 @@ import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { eq, and } from "drizzle-orm";
 import { EditPropertyForm } from "./EditPropertyForm";
+import { titleClass } from "@/lib/styles";
 
 export default async function EditPropertyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params; // en Next.js reciente, params es una Promise
+  const { id } = await params;
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/");
 
@@ -17,11 +18,11 @@ export default async function EditPropertyPage({ params }: { params: Promise<{ i
     .from(properties)
     .where(and(eq(properties.id, id), eq(properties.ownerId, session.user.id)));
 
-  if (!property) notFound(); // muestra la página 404 si no existe o no le pertenece
+  if (!property) notFound();
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Editar inmueble</h1>
+    <div className="max-w-md">
+      <h1 className={`${titleClass} mb-6`}>Editar inmueble</h1>
       <EditPropertyForm property={property} />
     </div>
   );
