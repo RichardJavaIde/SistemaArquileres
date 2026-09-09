@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createContract } from "@/app/actions/contracts";
+import { buttonPrimaryClass, inputClass } from "@/lib/styles";
 
 type Props = {
   properties: { id: string; address: string; monthlyPrice: string }[]; // agregamos monthlyPrice
@@ -49,38 +50,55 @@ export function ContractForm({ properties, tenants }: Props) {
   }
 
   return (
-     <div style={{ maxWidth: 400 }}>
-      <select
-        value={propertyId}
-        onChange={(e) => handlePropertyChange(e.target.value)}
-        style={{ display: "block", marginBottom: 8, width: "100%" }}
-      >
+     <div>
+      <select value={propertyId} onChange={(e) => handlePropertyChange(e.target.value)} className={inputClass}>
         <option value="">-- Selecciona un inmueble --</option>
         {properties.map((p) => (
           <option key={p.id} value={p.id}>{p.address}</option>
         ))}
       </select>
 
-      <select value={tenantId} onChange={(e) => setTenantId(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }}>
+      <select value={tenantId} onChange={(e) => setTenantId(e.target.value)} className={inputClass}>
         <option value="">-- Selecciona un inquilino --</option>
         {tenants.map((t) => (
           <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
         ))}
       </select>
 
-      <label>Fecha de inicio</label>
-      <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
+      <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de inicio</label>
+      <input
+        type="date"
+        value={startDate}
+        onChange={(e) => setStartDate(e.target.value)}
+        className={inputClass}
+      />
 
-      <label>Duración (meses)</label>
-      <input type="number" min={1} max={60} value={months} onChange={(e) => setMonths(e.target.value)} style={{ display: "block", marginBottom: 4, width: "100%" }} />
-      {previewEndDate && <p style={{ fontSize: 12, color: "#666", marginTop: 0 }}>Fecha de fin estimada: {previewEndDate}</p>}
+      <label className="block text-sm font-medium text-gray-700 mb-1">Duración (meses)</label>
+      <input
+        type="number"
+        min={1}
+        max={60}
+        value={months}
+        onChange={(e) => setMonths(e.target.value)}
+        className={inputClass}
+      />
+      {previewEndDate && (
+        <p className="text-xs text-gray-500 -mt-2 mb-3">Fecha de fin estimada: {previewEndDate}</p>
+      )}
 
-      <input placeholder="Monto mensual" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%", marginTop: 8 }} />
+      <input
+        placeholder="Monto mensual"
+        value={monthlyRent}
+        onChange={(e) => setMonthlyRent(e.target.value)}
+        className={inputClass}
+      />
 
-      <button onClick={handleSubmit} disabled={isSubmitting}>
+      <button onClick={handleSubmit} disabled={isSubmitting} className={buttonPrimaryClass}>
         {isSubmitting ? "Creando..." : "Crear contrato"}
       </button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
     </div>
   );
+     
+     
 }

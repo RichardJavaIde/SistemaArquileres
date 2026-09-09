@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cancelContract } from "@/app/actions/contracts";
+import { buttonDangerClass } from "@/lib/styles";
 
 export function CancelButton({ contractId }: { contractId: string }) {
   const router = useRouter();
@@ -11,7 +12,7 @@ export function CancelButton({ contractId }: { contractId: string }) {
   const [loading, setLoading] = useState(false);
 
   async function handleCancel() {
-    if (!confirm("¿Seguro que quieres eliminar este contrato?")) return;
+    if (!confirm("¿Seguro que quieres cancelar este contrato?")) return;
     setLoading(true);
     const result = await cancelContract(contractId);
     if (result.error) {
@@ -19,15 +20,15 @@ export function CancelButton({ contractId }: { contractId: string }) {
       setLoading(false);
       return;
     }
-    router.refresh(); // vuelve a pedir los datos del servidor sin recargar toda la página
+    router.refresh();
   }
 
   return (
-    <span>
-      <button onClick={handleCancel} disabled={loading} style={{ marginLeft: 8, color: "red" }}>
-        {loading ? "..." : "Cancelar contrato"}
+    <span className="inline-flex items-center gap-2">
+      <button onClick={handleCancel} disabled={loading} className={buttonDangerClass}>
+        {loading ? "..." : "Cancelar"}
       </button>
-      {error && <span style={{ color: "red", marginLeft: 8, fontSize: 12 }}>{error}</span>}
+      {error && <span className="text-red-600 text-xs">{error}</span>}
     </span>
   );
 }

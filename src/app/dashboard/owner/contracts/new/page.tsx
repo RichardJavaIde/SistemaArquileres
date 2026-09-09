@@ -1,3 +1,4 @@
+// src/app/dashboard/owner/contracts/new/page.tsx
 import { db } from "@/db";
 import { properties, user, contracts } from "@/db/schema";
 import { auth } from "@/lib/auth";
@@ -7,11 +8,10 @@ import { eq, and, notInArray } from "drizzle-orm";
 import { ContractForm } from "./ContractForm";
 
 export default async function NewContractPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/");
   if (!["owner", "admin"].includes((session.user as any).role)) redirect("/");
 
-  // 1. Averiguamos qué inmuebles YA tienen un contrato activo
   const activeContracts = await db
     .select({ propertyId: contracts.propertyId })
     .from(contracts)
@@ -19,7 +19,6 @@ export default async function NewContractPage() {
 
   const rentedIds = activeContracts.map((c) => c.propertyId);
 
-  // 2. Traemos solo los inmuebles del owner que NO estén en esa lista
   const availableProperties = await db
     .select()
     .from(properties)
@@ -35,8 +34,8 @@ export default async function NewContractPage() {
     .where(eq(user.role as any, "tenant"));
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Nuevo contrato</h1>
+    <div className="max-w-md">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Nuevo contrato</h1>
       <ContractForm properties={availableProperties} tenants={tenants} />
     </div>
   );

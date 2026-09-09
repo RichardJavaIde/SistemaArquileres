@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deactivateProperty } from "@/app/actions/properties";
+import { buttonDangerClass } from "@/lib/styles";
 
 export function DeleteButton({ propertyId }: { propertyId: string }) {
   const router = useRouter();
@@ -19,15 +20,15 @@ export function DeleteButton({ propertyId }: { propertyId: string }) {
       setLoading(false);
       return;
     }
-    router.refresh(); // vuelve a pedir los datos del servidor sin recargar toda la página
+    router.refresh();
   }
 
   return (
-    <span>
-      <button onClick={handleDelete} disabled={loading} style={{ marginLeft: 8, color: "red" }}>
+    <span className="inline-flex items-center gap-2">
+      <button onClick={handleDelete} disabled={loading} className={buttonDangerClass}>
         {loading ? "..." : "Eliminar"}
       </button>
-      {error && <span style={{ color: "red", marginLeft: 8, fontSize: 12 }}>{error}</span>}
+      {error && <span className="text-red-600 text-xs">{error}</span>}
     </span>
   );
 }
