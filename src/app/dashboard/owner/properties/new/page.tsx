@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createProperty } from "@/app/actions/properties";
 import { inputClass, buttonPrimaryClass, titleClass, errorTextClass  } from "@/lib/styles";
+import { useToast } from "@/components/Toast";
+
 
 export default function NewPropertyPage() {
   const router = useRouter();
@@ -12,6 +14,7 @@ export default function NewPropertyPage() {
   const [type, setType] = useState("house");
   const [monthlyPrice, setMonthlyPrice] = useState("");
   const [error, setError] = useState("");
+  const showToast = useToast();
 
   async function handleSubmit() {
     setError("");
@@ -21,6 +24,7 @@ export default function NewPropertyPage() {
       setError(result.error);
       return;
     }
+      showToast("Inmueble creado correctamente");
 
     router.push("/dashboard/owner/properties"); // redirige al listado
   }

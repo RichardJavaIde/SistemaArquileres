@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateContract } from "@/app/actions/contracts";
 import { inputClass, labelClass, buttonPrimaryClass, errorTextClass } from "@/lib/styles";
+import { useToast } from "@/components/Toast";
 
 type Props = {
   contract: { id: string; propertyId: string; tenantId: string; startDate: string; durationMonths: number; monthlyRent: string };
@@ -21,6 +22,7 @@ export function EditContractForm({ contract, properties, tenants }: Props) {
   const [monthlyRent, setMonthlyRent] = useState(contract.monthlyRent);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const showToast = useToast();
 
   async function handleSubmit() {
     setLoading(true);
@@ -31,6 +33,7 @@ export function EditContractForm({ contract, properties, tenants }: Props) {
       setLoading(false);
       return;
     }
+    showToast("Cambios guardados")
     router.push("/dashboard/owner/contracts");
   }
 

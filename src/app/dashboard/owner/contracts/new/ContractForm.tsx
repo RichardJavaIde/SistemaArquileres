@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createContract } from "@/app/actions/contracts";
 import { buttonPrimaryClass, inputClass } from "@/lib/styles";
+import { useToast } from "@/components/Toast";
 
 type Props = {
   properties: { id: string; address: string; monthlyPrice: string }[]; // agregamos monthlyPrice
@@ -20,6 +21,7 @@ export function ContractForm({ properties, tenants }: Props) {
   const [monthlyRent, setMonthlyRent] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const showToast = useToast();
 
    // Vista previa de la fecha de fin, solo para mostrar al usuario (el cálculo real y válido ocurre en el servidor)
   const previewEndDate = (() => {
@@ -46,6 +48,7 @@ export function ContractForm({ properties, tenants }: Props) {
 
       return;
     }
+    showToast("Contrato creado correctamente")
     router.push("/dashboard/owner/contracts");
   }
 

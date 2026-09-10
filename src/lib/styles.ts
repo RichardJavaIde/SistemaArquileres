@@ -22,4 +22,9 @@ export const pageHeaderClass = "flex items-center justify-between mb-6";
 
 export const titleClass = "text-2xl font-bold text-gray-900";
 
-export const errorTextClass = "text-red-600 text-sm mt-2";
+// src/lib/styles.ts (agrega esto a lo que ya tienes)
+export const errorTextClass =
+  "bg-red-50 border border-red-200 text-red-700 text-sm rounded-md px-3 py-2 mt-2";
+
+export const successTextClass =
+  "bg-green-50 border border-green-200 text-green-700 text-sm rounded-md px-3 py-2 mt-2";

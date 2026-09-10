@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateProperty } from "@/app/actions/properties";
 import { inputClass, buttonPrimaryClass, errorTextClass } from "@/lib/styles";
+import { useToast } from "@/components/Toast";
 
 type Props = {
   property: { id: string; address: string; type: string; monthlyPrice: string };
@@ -17,6 +18,7 @@ export function EditPropertyForm({ property }: Props) {
   const [monthlyPrice, setMonthlyPrice] = useState(property.monthlyPrice);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const showToast = useToast();
 
   async function handleSubmit() {
     setLoading(true);
@@ -27,6 +29,7 @@ export function EditPropertyForm({ property }: Props) {
       setLoading(false);
       return;
     }
+    showToast("Cambios guardados")
     router.push("/dashboard/owner/properties");
   }
 

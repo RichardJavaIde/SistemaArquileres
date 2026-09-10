@@ -5,11 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deactivateProperty } from "@/app/actions/properties";
 import { buttonDangerClass } from "@/lib/styles";
+import { useToast } from "@/components/Toast";
 
 export function DeleteButton({ propertyId }: { propertyId: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const showToast = useToast();
 
   async function handleDelete() {
     if (!confirm("¿Seguro que quieres eliminar este inmueble?")) return;
@@ -20,6 +22,7 @@ export function DeleteButton({ propertyId }: { propertyId: string }) {
       setLoading(false);
       return;
     }
+    showToast("Inmueble eliminado")
     router.refresh();
   }
 
