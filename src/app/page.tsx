@@ -1,73 +1,79 @@
 // src/app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { signUpSchema, signInSchema  } from "@/validators/auth";
-
+import { signUpSchema, signInSchema } from "@/validators/auth";
+import { inputClass, buttonPrimaryClass, buttonSecondaryClass, errorTextClass } from "@/lib/styles";
 
 export default function Home() {
+  const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [result, setResult] = useState("");
+  const [error, setError] = useState("");
 
-  async function handleSignUp() {
-   const validation = signUpSchema.safeParse({ name, email, password });
-
-  if (!validation.success) {
-    // .issues es un array de todos los errores encontrados
-    setResult(`Error: ${validation.error.issues[0].message}`);
-    return; // cortamos aquí, ni siquiera llamamos a Better Auth
+  function goToDashboard(role: string) {
+    if (role === "tenant") router.push("/dashboard/tenant");
+    else router.push("/dashboard/owner");
   }
 
-  const { data, error } = await authClient.signUp.email(validation.data);
-  setResult(error ? `Error: ${error.message}` : `¡Cuenta creada! ID: ${data.user.id}`);
+  // Redirección automática SOLO cuando ya hay sesión cargada, y de forma segura (fuera del render)
+  useEffect(() => {
+    if (session) {
+      goToDashboard((session.user as any).role);
+    }
+  }, [session]);
+
+  async function handleSignUp() {
+    const validation = signUpSchema.safeParse({ name, email, password });
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
+      return;
+    }
+    const { data, error: authError } = await authClient.signUp.email(validation.data);
+    if (authError) {
+      setError(authError.message ?? "No se pudo crear la cuenta");
+      return;
+    }
+    goToDashboard((data.user as any).role);
   }
 
   async function handleSignIn() {
     const validation = signInSchema.safeParse({ email, password });
-
-  if (!validation.success) {
-    setResult(`Error: ${validation.error.issues[0].message}`);
-    return;
+    if (!validation.success) {
+      setError(validation.error.issues[0].message);
+      return;
+    }
+    const { data, error: authError } = await authClient.signIn.email(validation.data);
+    if (authError) {
+      setError(authError.message ?? "Credenciales inválidas");
+      return;
+    }
+    goToDashboard((data.user as any).role);
   }
 
-  const { data, error } = await authClient.signIn.email(validation.data);
-  setResult(error ? `Error: ${error.message}` : `¡Sesión iniciada! Bienvenido, ${data.user.name}`);
-}
-
-  async function handleSignOut() {
-    await authClient.signOut();
-    setResult("Sesión cerrada");
+  if (isPending || session) {
+    return <p className="text-gray-500">Cargando...</p>;
   }
 
-  if (isPending) return <p style={{ padding: 40 }}>Cargando...</p>;
-
-  // Si HAY sesión activa, mostramos datos del usuario y el botón de salir
-  if (session) {
-    return (
-      <div style={{ padding: 40 }}>
-        <h1>Sesión activa</h1>
-        <p>Nombre: {session.user.name}</p>
-        <p>Email: {session.user.email}</p>
-        <p>Rol: {(session.user as any).role}</p>
-        <button onClick={handleSignOut}>Cerrar sesión</button>
-      </div>
-    );
-  }
-
-  // Si NO hay sesión, mostramos el formulario
   return (
-    <div style={{ padding: 40, maxWidth: 400 }}>
-      <h1>Registro / Login de prueba</h1>
-      <input placeholder="Nombre (solo para registro)" value={name} onChange={(e) => setName(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
-      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
-      <input placeholder="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ display: "block", marginBottom: 8, width: "100%" }} />
-      <button onClick={handleSignUp}>Crear cuenta</button>
-      <button onClick={handleSignIn} style={{ marginLeft: 8 }}>Iniciar sesión</button>
-      <p>{result}</p>
+    <div className="max-w-sm mx-auto mt-12">
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">Rentia</h1>
+      <p className="text-sm text-gray-500 mb-6">Inicia sesión o crea una cuenta</p>
+
+      <input placeholder="Nombre (solo para registro)" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+      <input placeholder="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+
+      <div className="flex gap-3">
+        <button onClick={handleSignIn} className={buttonPrimaryClass}>Iniciar sesión</button>
+        <button onClick={handleSignUp} className={buttonSecondaryClass}>Crear cuenta</button>
+      </div>
+
+      {error && <p className={errorTextClass}>{error}</p>}
     </div>
   );
 }
