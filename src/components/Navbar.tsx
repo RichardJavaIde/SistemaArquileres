@@ -11,6 +11,7 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const isAdmin = session && (session.user as any).role === "admin";
 
   async function handleLogout() {
     await authClient.signOut();
@@ -31,10 +32,12 @@ export function Navbar() {
   const isStaff = session && ["owner", "admin"].includes((session.user as any).role);
 
   const navLinks = [
-    { href: "/dashboard/owner", label: "Resumen" },
-    { href: "/dashboard/owner/properties", label: "Inmuebles" },
-    { href: "/dashboard/owner/contracts", label: "Contratos" },
-  ];
+  { href: "/dashboard/owner", label: "Resumen" },
+  { href: "/dashboard/owner/properties", label: "Inmuebles" },
+  { href: "/dashboard/owner/contracts", label: "Contratos" },
+  { href: "/dashboard/owner/tenants/new", label: "+ Inquilino" },
+  ...(isAdmin ? [{ href: "/dashboard/admin/users/new", label: "+ Usuario" }] : []),
+];
 
   return (
     <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">

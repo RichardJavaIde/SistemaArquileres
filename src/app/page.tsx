@@ -4,15 +4,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { signUpSchema, signInSchema } from "@/validators/auth";
-import { inputClass, buttonPrimaryClass, buttonSecondaryClass, errorTextClass } from "@/lib/styles";
+import { signInSchema } from "@/validators/auth";
+import { inputClass, buttonPrimaryClass, errorTextClass } from "@/lib/styles";
 
 export default function Home() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
 
   function goToDashboard(role: string) {
@@ -20,26 +19,9 @@ export default function Home() {
     else router.push("/dashboard/owner");
   }
 
-  // Redirección automática SOLO cuando ya hay sesión cargada, y de forma segura (fuera del render)
   useEffect(() => {
-    if (session) {
-      goToDashboard((session.user as any).role);
-    }
+    if (session) goToDashboard((session.user as any).role);
   }, [session]);
-
-  async function handleSignUp() {
-    const validation = signUpSchema.safeParse({ name, email, password });
-    if (!validation.success) {
-      setError(validation.error.issues[0].message);
-      return;
-    }
-    const { data, error: authError } = await authClient.signUp.email(validation.data);
-    if (authError) {
-      setError(authError.message ?? "No se pudo crear la cuenta");
-      return;
-    }
-    goToDashboard((data.user as any).role);
-  }
 
   async function handleSignIn() {
     const validation = signInSchema.safeParse({ email, password });
@@ -62,16 +44,14 @@ export default function Home() {
   return (
     <div className="max-w-sm mx-auto mt-12">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Rentia</h1>
-      <p className="text-sm text-gray-500 mb-6">Inicia sesión o crea una cuenta</p>
+      <p className="text-sm text-gray-500 mb-6">Inicia sesión para continuar</p>
 
-      <input placeholder="Nombre (solo para registro)" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
       <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
       <input placeholder="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
 
-      <div className="flex gap-3">
-        <button onClick={handleSignIn} className={buttonPrimaryClass}>Iniciar sesión</button>
-        <button onClick={handleSignUp} className={buttonSecondaryClass}>Crear cuenta</button>
-      </div>
+      <button onClick={handleSignIn} className={buttonPrimaryClass}>
+        Iniciar sesión
+      </button>
 
       {error && <p className={errorTextClass}>{error}</p>}
     </div>
