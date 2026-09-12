@@ -42,18 +42,20 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-sm mx-auto mt-12">
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">Rentia</h1>
-      <p className="text-sm text-gray-500 mb-6">Inicia sesión para continuar</p>
+    <div className="w-full max-w-sm">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-8">
+      <h1 className="text-2xl font-bold text-gray-900 text-center">Rentia</h1>
+      <p className="text-sm text-gray-500 text-center mt-1 mb-6">Inicia sesión para continuar</p>
 
       <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
       <input placeholder="Contraseña" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
 
-      <button onClick={handleSignIn} className={buttonPrimaryClass}>
+      <button onClick={handleSignIn} className={`${buttonPrimaryClass} w-full mt-1`}>
         Iniciar sesión
       </button>
 
       {error && <p className={errorTextClass}>{error}</p>}
     </div>
+  </div>
   );
 }

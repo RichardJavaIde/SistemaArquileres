@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { ToastProvider } from "@/components/Toast";
+import { AppShell } from "@/components/AppShell";
 
 export const metadata: Metadata = {
   title: "Rentia",
@@ -15,8 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body className="bg-gray-50 min-h-screen">
   <ToastProvider>
-    <Navbar />
-    <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+    <AppShell>{children}</AppShell>
   </ToastProvider>
 </body>
     </html>
