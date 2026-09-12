@@ -184,7 +184,7 @@ export const propertiesRelations = relations(properties, ({ one, many }) => ({
   contracts: many(contracts),
 }));
 
-export const contractsRelations = relations(contracts, ({ one }) => ({
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
   property: one(properties, {
     fields: [contracts.propertyId],
     references: [properties.id],
@@ -192,5 +192,14 @@ export const contractsRelations = relations(contracts, ({ one }) => ({
   tenant: one(user, {
     fields: [contracts.tenantId],
     references: [user.id],
+    
+  }),
+  payments: many(payments)
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  contract: one(contracts, {
+    fields: [payments.contractId],
+    references: [contracts.id],
   }),
 }));

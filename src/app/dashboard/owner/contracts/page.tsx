@@ -7,7 +7,7 @@ import Link from "next/link";
 import { CancelButton } from "./CancelButton";
 import { eq } from "drizzle-orm";
 import { contracts } from "@/db/schema";
-import { buttonPrimaryClass, buttonEditClass, cardClass, pageHeaderClass, titleClass } from "@/lib/styles";
+import { buttonPrimaryClass, buttonEditClass, cardClass, pageHeaderClass, titleClass,buttonNeutralClass  } from "@/lib/styles";
 
 export default async function ContractsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -47,6 +47,9 @@ export default async function ContractsPage() {
               <Link href={`/dashboard/owner/contracts/${c.id}/edit`} className={buttonEditClass}>
                 Editar
               </Link>
+              <Link href={`/dashboard/owner/contracts/${c.id}`} className={buttonNeutralClass}>
+  Ver pagos
+</Link>
               <CancelButton contractId={c.id} />
             </div>
           </div>

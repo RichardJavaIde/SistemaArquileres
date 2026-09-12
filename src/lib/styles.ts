@@ -28,3 +28,5 @@ export const errorTextClass =
 
 export const successTextClass =
   "bg-green-50 border border-green-200 text-green-700 text-sm rounded-md px-3 py-2 mt-2";
+export const buttonNeutralClass =
+  "text-gray-600 hover:text-white hover:bg-gray-600 border border-gray-200 hover:border-gray-600 px-3 py-1.5 rounded-md text-sm font-medium transition-colors duration-150";
