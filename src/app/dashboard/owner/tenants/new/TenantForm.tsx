@@ -15,11 +15,13 @@ export function TenantForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [cedula, setCedula] = useState("");
 
   async function handleSubmit() {
     setLoading(true);
     setError("");
-    const result = await createTenant({ name, email, password });
+    const result = await createTenant({ name, email, password, phone, cedula });
     if (result.error) {
       setError(result.error);
       setLoading(false);
@@ -33,6 +35,8 @@ export function TenantForm() {
     <div>
       <input placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
       <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+       <input placeholder="Teléfono" value={phone} onChange={(e) => setPhone(e.target.value)} className={inputClass} />
+      <input placeholder="Cédula" value={cedula} onChange={(e) => setCedula(e.target.value)} className={inputClass} />      
       <input placeholder="Contraseña temporal" type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass} />
       <button onClick={handleSubmit} disabled={loading} className={buttonPrimaryClass}>
         {loading ? "Registrando..." : "Registrar inquilino"}
