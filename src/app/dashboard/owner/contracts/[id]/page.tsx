@@ -5,8 +5,9 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
 import { eq, asc } from "drizzle-orm";
-import { cardClass, titleClass } from "@/lib/styles";
+import { buttonNeutralClass, cardClass, titleClass } from "@/lib/styles";
 import { MarkPaidButton } from "./MarkPaidButton";
+import Link from "next/link";
 
 
 export default async function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -54,6 +55,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
       <div className="space-y-3">
         {contractPayments.map((p) => {
   const effectiveStatus = getEffectiveStatus(p);
+  
   return (
     <div key={p.id} className={`${cardClass} flex items-center justify-between`}>
       <div>
@@ -63,6 +65,11 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
       <div className="flex items-center gap-3">
   <p className="font-semibold text-gray-900">${p.amount}</p>
   <MarkPaidButton paymentId={p.id} isPaid={p.status === "paid"} />
+  {effectiveStatus === "paid" && (
+  <Link href={`/payments/${p.id}/receipt`} className={buttonNeutralClass}>
+    Recibo
+  </Link>
+)}
 </div>
     </div>
   );
