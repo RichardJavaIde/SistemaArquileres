@@ -30,17 +30,14 @@ export async function createContract(input: unknown) {
 
   const { propertyId, tenantId, startDate, months, monthlyRent } = validation.data;
 
-  // Verificar que el inmueble sea del owner que hace la petición (seguridad extra)
+  // Cualquier owner/admin puede crear un contrato sobre cualquier inmueble,
+  // así que ya no filtramos por ownerId — solo confirmamos que el inmueble exista.
   const endDate = addMonths(startDate, months);
   const contractId = randomUUID(); // generamos el id nosotros, antes de insertar
-  const [property] = await db
-  
-    .select()
-    .from(properties)
-    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+  const [property] = await db.select().from(properties).where(eq(properties.id, propertyId));
 
   if (!property) {
-    return { error: "Ese inmueble no existe o no te pertenece" };
+    return { error: "Ese inmueble no existe" };
   }
 
   const paymentRows = Array.from({ length: months }, (_, i) => ({
@@ -80,15 +77,12 @@ export async function cancelContract(contractId: string) {
     return { error: "No tienes permiso para cancelar contratos" };
   }
 
-  // Verificar que el contrato pertenezca a un inmueble de este owner
-  const [contract] = await db
-    .select({ id: contracts.id, ownerId: properties.ownerId })
-    .from(contracts)
-    .innerJoin(properties, eq(contracts.propertyId, properties.id))
-    .where(eq(contracts.id, contractId));
+  // Cualquier owner/admin puede cancelar cualquier contrato, así que ya no
+  // filtramos por ownerId — solo confirmamos que el contrato exista.
+  const [contract] = await db.select({ id: contracts.id }).from(contracts).where(eq(contracts.id, contractId));
 
-  if (!contract || contract.ownerId !== session.user.id) {
-    return { error: "Ese contrato no existe o no te pertenece" };
+  if (!contract) {
+    return { error: "Ese contrato no existe" };
   }
 
   // Verificar que no tenga pagos ya realizados
@@ -113,15 +107,12 @@ export async function updateContract(contractId: string, input: unknown) {
     return { error: "No tienes permiso para editar contratos" };
   }
 
-  // Verificar que el contrato exista y pertenezca (vía el inmueble) a este owner
-  const [existing] = await db
-    .select({ id: contracts.id, ownerId: properties.ownerId })
-    .from(contracts)
-    .innerJoin(properties, eq(contracts.propertyId, properties.id))
-    .where(eq(contracts.id, contractId));
+  // Cualquier owner/admin puede editar cualquier contrato, así que ya no
+  // filtramos por ownerId — solo confirmamos que el contrato exista.
+  const [existing] = await db.select({ id: contracts.id }).from(contracts).where(eq(contracts.id, contractId));
 
-  if (!existing || existing.ownerId !== session.user.id) {
-    return { error: "Ese contrato no existe o no te pertenece" };
+  if (!existing) {
+    return { error: "Ese contrato no existe" };
   }
 
   // Bloquear edición si ya tiene algún pago registrado
@@ -141,14 +132,11 @@ export async function updateContract(contractId: string, input: unknown) {
 
   const { propertyId, tenantId, startDate, months, monthlyRent } = validation.data;
 
-  // Si cambió el inmueble, confirmar que el NUEVO también le pertenezca a este owner
-  const [newProperty] = await db
-    .select()
-    .from(properties)
-    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+  // Si cambió el inmueble, confirmar que el NUEVO exista
+  const [newProperty] = await db.select().from(properties).where(eq(properties.id, propertyId));
 
   if (!newProperty) {
-    return { error: "Ese inmueble no existe o no te pertenece" };
+    return { error: "Ese inmueble no existe" };
   }
 
   const endDate = addMonths(startDate, months);

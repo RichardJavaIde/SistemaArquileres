@@ -17,14 +17,13 @@ export default async function PropertiesPage() {
   const role = (session.user as any).role;
   if (role !== "owner" && role !== "admin") redirect("/");
 
-  const myProperties = await db
-  .select()
-  .from(properties)
-  .where(and(eq(properties.ownerId, session.user.id), eq(properties.isActive, true)));
+  // El owner ve TODOS los inmuebles del sistema (no solo los suyos),
+  // así que ya no filtramos por ownerId — solo excluimos los eliminados.
+  const allProperties = await db.select().from(properties).where(eq(properties.isActive, true));
 
   // Averiguamos cuáles de estos inmuebles tienen un contrato activo en este momento,
   // para poder mostrar la etiqueta "Alquilado" / "No alquilado" sin ir a otra pantalla.
-  const propertyIds = myProperties.map((p) => p.id);
+  const propertyIds = allProperties.map((p) => p.id);
   const activeContracts = propertyIds.length
     ? await db
         .select({ propertyId: contracts.propertyId })
@@ -36,17 +35,17 @@ export default async function PropertiesPage() {
   return (
      <div>
     <div className={pageHeaderClass}>
-      <h1 className={titleClass}>Mis inmuebles</h1>
+      <h1 className={titleClass}>Inmuebles</h1>
       <Link href="/dashboard/owner/properties/new" className={buttonPrimaryClass}>
         + Nuevo inmueble
       </Link>
     </div>
 
-    {myProperties.length === 0 ? (
-      <p className="text-gray-500">Todavía no tienes inmuebles registrados.</p>
+    {allProperties.length === 0 ? (
+      <p className="text-gray-500">Todavía no hay inmuebles registrados.</p>
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {myProperties.map((p) => {
+        {allProperties.map((p) => {
           const isRented = rentedPropertyIds.has(p.id);
           return (
             <div key={p.id} className={cardClass}>

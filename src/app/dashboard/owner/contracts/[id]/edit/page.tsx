@@ -19,7 +19,9 @@ export default async function EditContractPage({ params }: { params: Promise<{ i
     with: { property: true },
   });
 
-  if (!contract || contract.property.ownerId !== session.user.id) notFound();
+  // Cualquier owner/admin puede editar cualquier contrato, así que ya no
+  // verificamos que el inmueble le pertenezca a este usuario.
+  if (!contract) notFound();
 
   const activeContracts = await db
     .select({ propertyId: contracts.propertyId })
@@ -28,13 +30,15 @@ export default async function EditContractPage({ params }: { params: Promise<{ i
 
   const rentedIds = activeContracts.map((c) => c.propertyId);
 
-  const myProperties = await db
+  // Inmuebles disponibles para reasignar este contrato: cualquiera del sistema
+  // (ya no solo los de este owner), activo y sin otro contrato activo.
+  const availableProperties = await db
     .select()
     .from(properties)
     .where(
       rentedIds.length > 0
-        ? and(eq(properties.ownerId, session.user.id), notInArray(properties.id, rentedIds))
-        : eq(properties.ownerId, session.user.id)
+        ? and(eq(properties.isActive, true), notInArray(properties.id, rentedIds))
+        : eq(properties.isActive, true)
     );
 
   const tenants = await db
@@ -45,7 +49,7 @@ export default async function EditContractPage({ params }: { params: Promise<{ i
   return (
     <div className="max-w-md">
       <h1 className={`${titleClass} mb-6`}>Editar contrato</h1>
-      <EditContractForm contract={contract} properties={myProperties} tenants={tenants} />
+      <EditContractForm contract={contract} properties={availableProperties} tenants={tenants} />
     </div>
   );
 }

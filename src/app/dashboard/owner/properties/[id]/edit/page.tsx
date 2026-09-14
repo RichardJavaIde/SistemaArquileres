@@ -4,7 +4,7 @@ import { properties } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect, notFound } from "next/navigation";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { EditPropertyForm } from "./EditPropertyForm";
 import { titleClass } from "@/lib/styles";
 
@@ -13,10 +13,12 @@ export default async function EditPropertyPage({ params }: { params: Promise<{ i
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/");
 
-  const [property] = await db
-    .select()
-    .from(properties)
-    .where(and(eq(properties.id, id), eq(properties.ownerId, session.user.id)));
+  const role = (session.user as any).role;
+  if (role !== "owner" && role !== "admin") redirect("/");
+
+  // Cualquier owner/admin puede editar cualquier inmueble, así que ya no
+  // filtramos por ownerId — solo buscamos el inmueble por su id.
+  const [property] = await db.select().from(properties).where(eq(properties.id, id));
 
   if (!property) notFound();
 

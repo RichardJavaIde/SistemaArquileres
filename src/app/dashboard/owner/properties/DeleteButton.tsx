@@ -9,7 +9,6 @@ import { useToast } from "@/components/Toast";
 
 export function DeleteButton({ propertyId }: { propertyId: string }) {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
@@ -18,20 +17,17 @@ export function DeleteButton({ propertyId }: { propertyId: string }) {
     setLoading(true);
     const result = await deactivateProperty(propertyId);
     if (result.error) {
-      setError(result.error);
+      showToast(result.error, "error");
       setLoading(false);
       return;
     }
-    showToast("Inmueble eliminado")
+    showToast("Inmueble eliminado");
     router.refresh();
   }
 
   return (
-    <span className="inline-flex items-center gap-2">
-      <button onClick={handleDelete} disabled={loading} className={buttonDangerClass}>
-        {loading ? "..." : "Eliminar"}
-      </button>
-      {error && <span className="text-red-600 text-xs">{error}</span>}
-    </span>
+    <button onClick={handleDelete} disabled={loading} className={buttonDangerClass}>
+      {loading ? "..." : "Eliminar"}
+    </button>
   );
 }

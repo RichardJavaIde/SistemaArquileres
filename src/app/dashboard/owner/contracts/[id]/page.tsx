@@ -21,7 +21,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
     with: { property: true, tenant: true },
   });
 
-  if (!contract || contract.property.ownerId !== session.user.id) notFound();
+if (!contract) notFound();
 
   const contractPayments = await db
     .select()

@@ -48,12 +48,16 @@ export async function deactivateProperty(propertyId: string) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { error: "Debes iniciar sesión" };
 
-  const [property] = await db
-    .select()
-    .from(properties)
-    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+  const role = (session.user as any).role;
+  if (role !== "owner" && role !== "admin") {
+    return { error: "No tienes permiso para eliminar inmuebles" };
+  }
 
-  if (!property) return { error: "Ese inmueble no existe o no te pertenece" };
+  // Cualquier owner/admin puede gestionar cualquier inmueble, así que ya no
+  // filtramos por ownerId — solo confirmamos que el inmueble exista.
+  const [property] = await db.select().from(properties).where(eq(properties.id, propertyId));
+
+  if (!property) return { error: "Ese inmueble no existe" };
 
   // Verificar que no tenga un contrato activo
   const [activeContract] = await db
@@ -75,12 +79,16 @@ export async function updateProperty(propertyId: string, input: unknown) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { error: "Debes iniciar sesión" };
 
-  const [property] = await db
-    .select()
-    .from(properties)
-    .where(and(eq(properties.id, propertyId), eq(properties.ownerId, session.user.id)));
+  const role = (session.user as any).role;
+  if (role !== "owner" && role !== "admin") {
+    return { error: "No tienes permiso para editar inmuebles" };
+  }
 
-  if (!property) return { error: "Ese inmueble no existe o no te pertenece" };
+  // Cualquier owner/admin puede gestionar cualquier inmueble, así que ya no
+  // filtramos por ownerId — solo confirmamos que el inmueble exista.
+  const [property] = await db.select().from(properties).where(eq(properties.id, propertyId));
+
+  if (!property) return { error: "Ese inmueble no existe" };
 
   const validation = createPropertySchema.safeParse(input); // reutilizamos el mismo schema de Zod de crear
   if (!validation.success) {

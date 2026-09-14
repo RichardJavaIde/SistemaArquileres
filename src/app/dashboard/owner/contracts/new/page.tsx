@@ -19,13 +19,16 @@ export default async function NewContractPage() {
 
   const rentedIds = activeContracts.map((c) => c.propertyId);
 
+  // Cualquier owner/admin puede crear un contrato sobre cualquier inmueble del
+  // sistema, así que ya no filtramos por ownerId — solo excluimos inmuebles
+  // eliminados y los que ya tienen contrato activo.
   const availableProperties = await db
     .select()
     .from(properties)
     .where(
       rentedIds.length > 0
-        ? and(eq(properties.ownerId, session.user.id), notInArray(properties.id, rentedIds))
-        : eq(properties.ownerId, session.user.id)
+        ? and(eq(properties.isActive, true), notInArray(properties.id, rentedIds))
+        : eq(properties.isActive, true)
     );
 
   const tenants = await db

@@ -4,7 +4,7 @@ import { properties, contracts } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import Link from "next/link";
 import { cardClass, titleClass, buttonPrimaryClass } from "@/lib/styles";
 
@@ -13,27 +13,23 @@ export default async function OwnerDashboard() {
   if (!session) redirect("/");
   if (!["owner", "admin"].includes((session.user as any).role)) redirect("/");
 
-  const myProperties = await db
-    .select()
-    .from(properties)
-    .where(and(eq(properties.ownerId, session.user.id), eq(properties.isActive, true)));
+  // El owner ve el resumen de TODO el sistema (no solo lo que administra él),
+  // así que ya no filtramos por ownerId — solo excluimos inmuebles eliminados.
+  const allProperties = await db.select().from(properties).where(eq(properties.isActive, true));
 
   const activeContracts = await db.query.contracts.findMany({
     where: eq(contracts.status, "active"),
     with: { property: true },
   });
 
-  // Filtramos solo los contratos de inmuebles de ESTE owner (el join no filtra por dueño directamente)
-  // y excluimos inmuebles ya eliminados (isActive: false), para que "Alquilados" no cuente
-  // contratos de inmuebles que ya no existen para el dashboard (y así "Disponibles" no dé negativo).
-  const myActiveContracts = activeContracts.filter(
-    (c) => c.property.ownerId === session.user.id && c.property.isActive
-  );
+  // Excluimos contratos de inmuebles ya eliminados (isActive: false), para que
+  // "Alquilados" no cuente inmuebles que ya no existen (y "Disponibles" no dé negativo).
+  const activePropertyContracts = activeContracts.filter((c) => c.property.isActive);
 
-  const totalProperties = myProperties.length;
-  const rentedCount = myActiveContracts.length;
+  const totalProperties = allProperties.length;
+  const rentedCount = activePropertyContracts.length;
   const availableCount = totalProperties - rentedCount;
-  const monthlyIncome = myActiveContracts.reduce((sum, c) => sum + Number(c.monthlyRent), 0);
+  const monthlyIncome = activePropertyContracts.reduce((sum, c) => sum + Number(c.monthlyRent), 0);
 
   const stats = [
     { label: "Inmuebles totales", value: totalProperties, href: "/dashboard/owner/properties" },
