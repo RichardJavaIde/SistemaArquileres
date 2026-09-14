@@ -36,7 +36,7 @@ export function Navbar() {
   { href: "/dashboard/owner/properties", label: "Inmuebles" },
   { href: "/dashboard/owner/contracts", label: "Contratos" },
   { href: "/dashboard/owner/tenants", label: "Inquilinos" },
-  ...(isAdmin ? [{ href: "/dashboard/admin/users/new", label: "+ Usuario" }] : []),
+  ...(isAdmin ? [{ href: "/dashboard/admin/users", label: "Usuarios" }] : []),
 ];
 
   return (

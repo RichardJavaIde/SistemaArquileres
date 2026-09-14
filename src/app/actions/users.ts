@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { user, contracts } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createStaffSchema, createTenantSchema, updateTenantSchema, resetPasswordSchema } from "@/validators/user";
 
@@ -123,6 +123,55 @@ export async function resetTenantPassword(tenantId: string, input: unknown) {
 
   await auth.api.setUserPassword({
     body: { userId: tenantId, newPassword: validation.data.newPassword },
+    headers: await headers(),
+  });
+
+  return { success: true };
+}
+
+async function requireAdmin() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session || (session.user as any).role !== "admin") return null;
+  return session;
+}
+
+export async function listStaffUsers() {
+  const session = await requireAdmin();
+  if (!session) return [];
+
+  return db
+    .select({ id: user.id, name: user.name, email: user.email, role: user.role })
+    .from(user)
+    .where(inArray(user.role as any, ["admin", "owner"]));
+}
+
+export async function updateStaffUser(userId: string, input: unknown) {
+  const session = await requireAdmin();
+  if (!session) return { error: "Solo un administrador puede editar usuarios" };
+
+  const validation = createStaffSchema
+    .omit({ email: true, password: true }) // en editar no se cambia el email ni la contraseña aquí
+    .safeParse(input);
+  if (!validation.success) return { error: validation.error.issues[0].message };
+
+  await db
+    .update(user)
+    .set({ name: validation.data.name, role: validation.data.role })
+    .where(eq(user.id, userId));
+
+  revalidatePath("/dashboard/admin/users");
+  return { success: true };
+}
+
+export async function resetStaffPassword(userId: string, input: unknown) {
+  const session = await requireAdmin();
+  if (!session) return { error: "Solo un administrador puede resetear contraseñas" };
+
+  const validation = resetPasswordSchema.safeParse(input);
+  if (!validation.success) return { error: validation.error.issues[0].message };
+
+  await auth.api.setUserPassword({
+    body: { userId, newPassword: validation.data.newPassword },
     headers: await headers(),
   });
 
