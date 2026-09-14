@@ -9,7 +9,6 @@ import { useToast } from "@/components/Toast";
 
 export function CancelButton({ contractId }: { contractId: string }) {
   const router = useRouter();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const showToast = useToast();
 
@@ -18,20 +17,17 @@ export function CancelButton({ contractId }: { contractId: string }) {
     setLoading(true);
     const result = await cancelContract(contractId);
     if (result.error) {
-      setError(result.error);
+      showToast(result.error, "error");
       setLoading(false);
       return;
     }
-    showToast("Contrato cancelado")
+    showToast("Contrato cancelado");
     router.refresh();
   }
 
   return (
-    <span className="inline-flex items-center gap-2">
-      <button onClick={handleCancel} disabled={loading} className={buttonDangerClass}>
-        {loading ? "..." : "Cancelar"}
-      </button>
-      {error && <span className="text-red-600 text-xs">{error}</span>}
-    </span>
+    <button onClick={handleCancel} disabled={loading} className={buttonDangerClass}>
+      {loading ? "..." : "Cancelar"}
+    </button>
   );
 }

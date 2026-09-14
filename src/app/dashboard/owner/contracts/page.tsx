@@ -19,8 +19,17 @@ export default async function ContractsPage() {
   with: {
     property: true,
     tenant: true,
+    payments: true,
     },
   });
+
+  // Un contrato está "Atrasado" si tiene al menos un pago pendiente cuya fecha de
+  // vencimiento ya pasó. El mismo criterio ("efectivo", no guardado en la BD) que
+  // ya se usa en el dashboard del inquilino y en el detalle del contrato.
+  function isContractLate(contract: (typeof allContracts)[number]) {
+    const today = new Date();
+    return contract.payments.some((p) => p.status === "pending" && new Date(p.dueDate) < today);
+  }
 
   return (
      <div>
@@ -35,9 +44,20 @@ export default async function ContractsPage() {
       <p className="text-gray-500">Todavía no tienes contratos registrados.</p>
     ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {allContracts.map((c) => (
+        {allContracts.map((c) => {
+          const late = isContractLate(c);
+          return (
           <div key={c.id} className={cardClass}>
-            <p className="font-medium text-gray-900">{c.property.address}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium text-gray-900">{c.property.address}</p>
+              <span
+                className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
+                  late ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                }`}
+              >
+                {late ? "Atrasado" : "Al día"}
+              </span>
+            </div>
             <p className="text-sm text-gray-500">Inquilino: {c.tenant.name}</p>
             <p className="text-lg font-semibold text-gray-900 mt-2">${c.monthlyRent}/mes</p>
             <p className="text-xs text-gray-400 mt-1">
@@ -53,7 +73,8 @@ export default async function ContractsPage() {
               <CancelButton contractId={c.id} />
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     )}
   </div>

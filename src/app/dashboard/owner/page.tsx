@@ -24,7 +24,11 @@ export default async function OwnerDashboard() {
   });
 
   // Filtramos solo los contratos de inmuebles de ESTE owner (el join no filtra por dueño directamente)
-  const myActiveContracts = activeContracts.filter((c) => c.property.ownerId === session.user.id);
+  // y excluimos inmuebles ya eliminados (isActive: false), para que "Alquilados" no cuente
+  // contratos de inmuebles que ya no existen para el dashboard (y así "Disponibles" no dé negativo).
+  const myActiveContracts = activeContracts.filter(
+    (c) => c.property.ownerId === session.user.id && c.property.isActive
+  );
 
   const totalProperties = myProperties.length;
   const rentedCount = myActiveContracts.length;
@@ -32,9 +36,9 @@ export default async function OwnerDashboard() {
   const monthlyIncome = myActiveContracts.reduce((sum, c) => sum + Number(c.monthlyRent), 0);
 
   const stats = [
-    { label: "Inmuebles totales", value: totalProperties },
-    { label: "Alquilados", value: rentedCount },
-    { label: "Disponibles", value: availableCount },
+    { label: "Inmuebles totales", value: totalProperties, href: "/dashboard/owner/properties" },
+    { label: "Alquilados", value: rentedCount, href: "/dashboard/owner/contracts" },
+    { label: "Disponibles", value: availableCount, href: "/dashboard/owner/properties" },
     { label: "Ingreso mensual", value: `$${monthlyIncome.toLocaleString()}` },
   ];
 
@@ -46,12 +50,19 @@ export default async function OwnerDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {stats.map((s) => (
-          <div key={s.label} className={cardClass}>
-            <p className="text-sm text-gray-500">{s.label}</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
-          </div>
-        ))}
+        {stats.map((s) =>
+          s.href ? (
+            <Link key={s.label} href={s.href} className={`${cardClass} block hover:border-blue-300 hover:shadow-md transition-shadow duration-150`}>
+              <p className="text-sm text-gray-500">{s.label}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
+            </Link>
+          ) : (
+            <div key={s.label} className={cardClass}>
+              <p className="text-sm text-gray-500">{s.label}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{s.value}</p>
+            </div>
+          )
+        )}
       </div>
 
       <div className="flex gap-3">
