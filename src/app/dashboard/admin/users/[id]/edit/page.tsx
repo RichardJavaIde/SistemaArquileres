@@ -21,10 +21,14 @@ export default async function EditStaffPage({ params }: { params: Promise<{ id: 
 
   if (!staffUser) notFound();
 
-  return (
+  const normalizedStaffUser = {
+    ...staffUser,
+    role: staffUser.role ?? "tenant",
+  };
+   return (
     <div className="max-w-md">
       <h1 className={`${titleClass} mb-6`}>Editar usuario</h1>
-      <EditStaffForm staffUser={staffUser} />
+      <EditStaffForm staffUser={normalizedStaffUser} />
     </div>
   );
 }

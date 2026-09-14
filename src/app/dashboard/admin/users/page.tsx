@@ -26,7 +26,7 @@ export default async function StaffUsersPage() {
             <div key={u.id} className={cardClass}>
               <p className="font-medium text-gray-900">{u.name}</p>
               <p className="text-sm text-gray-500">{u.email}</p>
-              <p className="text-sm text-gray-500">{roleLabel[u.role] ?? u.role}</p>
+              <p className="text-sm text-gray-500">{u.role ? roleLabel[u.role] ?? u.role : "Sin rol"}</p>
               <div className="flex flex-wrap gap-3 mt-3 text-sm">
                 <Link href={`/dashboard/admin/users/${u.id}/edit`} className={buttonEditClass}>
                   Editar
