@@ -24,9 +24,13 @@ export default async function ReceiptPage({ params }: { params: Promise<{ id: st
   if (!payment || payment.status !== "paid") notFound();
 
   const { contract } = payment;
-  const isOwner = contract.property.ownerId === session.user.id;
+  // Cualquier owner/admin puede ver cualquier recibo, así que ya no exigimos
+  // que el inmueble le pertenezca a este usuario en particular. El inquilino
+  // del contrato también puede ver su propio recibo.
+  const role = (session.user as any).role;
+  const isStaff = role === "owner" || role === "admin";
   const isTenant = contract.tenantId === session.user.id;
-  if (!isOwner && !isTenant) notFound();
+  if (!isStaff && !isTenant) notFound();
 
   const [owner] = await db
     .select({ name: user.name })
